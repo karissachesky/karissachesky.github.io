@@ -59,6 +59,7 @@ print(r.UT,UT) #access R-defined objects with r.
 #R code chunk
 cat(c(UT,py$UT)) #access Python-defined objects with py$
 ```
+I have learned a plethora of tools in R studio, Python, and data analysis in SDS 348. I hope to utilize these in my future career in health care.
 
 ![](/post/2021-05-09-python-and-r_files/Screenshot (431).png)
 
