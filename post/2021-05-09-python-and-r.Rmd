@@ -1,0 +1,65 @@
+---
+title: Python and R
+author: Karissa Chesky
+date: '2021-05-09'
+slug: python-and-r
+categories: []
+tags: []
+description: ''
+---
+
+Python is a coding language that I have recently explored in SDS 348. Several basic functions, similar to those utilized in R have been used, including indexing, slicing, and creating lists. Others include language features and conditionals, and can also be created. An example of some functions in python is as follows: 
+
+```{python}
+import numpy as np
+x=np.array([1,2,3])
+x
+
+print(x/2+1)
+x.shape
+
+mat1=np.array([[1,2],[3,4]])
+mat1
+
+```
+
+```{python}
+for i in range(5):
+ print(i)
+
+for letter in "abcdefg":
+ print(letter)
+ 
+ x=np.random.randint(-10,10,1) #generate a random number from 1 to 10
+if x>0:
+ print("x is greater than zero!")
+elif x==0:
+ print("x is zero!")
+else:
+ print("x is less than zero!")
+
+
+
+```
+Reticulate can also be used to demonstrate how R and Python talk to each other and share information across code chunks. Specifically, with the reticulate package, the interplay between the two languages can be observed:
+
+```{R}
+#R code chunk
+library(reticulate)
+UT<-"Texas"
+```
+
+```{python}
+#Python code chunk
+UT="Longhron"
+print(r.UT,UT) #access R-defined objects with r. 
+```
+
+```{R}
+#R code chunk
+cat(c(UT,py$UT)) #access Python-defined objects with py$
+```
+
+![](/post/2021-05-09-python-and-r_files/Screenshot (431).png)
+
+

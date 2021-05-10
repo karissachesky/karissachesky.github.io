@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Karissa Chesky" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Project 2</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project2/">Project 2</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<p>##Logistics</p>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p><strong>I have chosen the dataset “heart” for Project 2. This dataset was acquired from the public learning community Kaggle. I was inspired to study heart health data, and their modern trends, as they continue to greatly impact our modern world and my interests in medicine. “Heart” is a dataset containing variables that effect heart health and can ultimately lead to death. For example, such variables include “age”, “anemia”, “creatinine_phosphokinase”, “diabetes”, etc. These variables are measuring how much of a certain molecule is present or the diagnosis of a health state. There are 299 observations.</strong></p>
+<pre class="r"><code>library(tidyverse)
+library(dplyr)
+
+setwd(&quot;/home/kac5389/website/content/project&quot;)
+
+heart &lt;- read_csv(&quot;heart_failure_clinical_records_dataset.csv&quot;)
+
+head(heart)</code></pre>
+<pre><code>## # A tibble: 6 x 13
+##     age anaemia creatinine_phos… diabetes ejection_fracti… high_blood_pres…
+##   &lt;dbl&gt;   &lt;dbl&gt;            &lt;dbl&gt;    &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+## 1    75       0              582        0               20                1
+## 2    55       0             7861        0               38                0
+## 3    65       0              146        0               20                0
+## 4    50       1              111        0               20                0
+## 5    65       1              160        1               20                0
+## 6    90       1               47        0               40                1
+## # … with 7 more variables: platelets &lt;dbl&gt;, serum_creatinine &lt;dbl&gt;,
+## #   serum_sodium &lt;dbl&gt;, sex &lt;dbl&gt;, smoking &lt;dbl&gt;, time &lt;dbl&gt;, DEATH_EVENT &lt;dbl&gt;</code></pre>
+</div>
+<div id="question-1-manova-testing" class="section level2">
+<h2>Question 1: Manova Testing</h2>
+<pre><code>##            Df   Pillai approx F num Df den Df Pr(&gt;F)
+## diabetes    1 0.010205   1.5259      2    296 0.2191
+## Residuals 297</code></pre>
+<pre><code>##  Response age :
+##              Df Sum Sq Mean Sq F value  Pr(&gt;F)  
+## diabetes      1    430  430.21  3.0617 0.08119 .
+## Residuals   297  41733  140.51                  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response ejection_fraction :
+##              Df Sum Sq Mean Sq F value Pr(&gt;F)
+## diabetes      1      1   0.982   0.007 0.9334
+## Residuals   297  41738 140.532</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  heart$age and heart$diabetes 
+## 
+##   0    
+## 1 0.081
+## 
+## P value adjustment method: none</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  heart$ejection_fraction and heart$diabetes 
+## 
+##   0   
+## 1 0.93
+## 
+## P value adjustment method: none</code></pre>
+<pre><code>## [1] 0.142625</code></pre>
+<pre><code>## [1] 0.01666667</code></pre>
+<p><strong>A one-way MANOVA was performed to determine the effect of the diabetes status on two dependent variables (age and ejection fraction). Significant differences were not found among the two diabetes statuses for at least one of the dependent variables, Pillai trace = 0.010205, pseudo F(2, 297) = 11.5259, p = 0.2191. For demonstration (although no significant mean difference was present), univariate ANOVAs for each dependent variable were conducted as follow-up tests to the MANOVA, using the Bonferroni method for controlling Type 1 error rates for multiple comparisons. Three total tests were performed (1 MANOVA, 2 ANOVA), and the probability of at least one type 1 error is 0.142625. To keep familywise Type 1 error rate at 0.05, a Bonferroni correction were performed, α = 0.05/3 = 0.142625. The univariate ANOVAs for Tested and Infected were not significant, F(1, 297) = 3.0617, p = 0.08119, and F(1, 49) = 0.007, p = 0.9334. Also for demonstration, post hoc analysis was performed conducting pairwise comparisions to determine which diabetes status differed in number of tested and infected individuals. Both statuses still not found to differ significantly from each other in terms of age and ejection fraction after adjusting for multiple comparisons (boneferroni α = 0.05/3 = 0.0167).</strong></p>
+</div>
+<div id="question-2-randomization" class="section level2">
+<h2>Question 2: Randomization</h2>
+<pre class="r"><code>heart %&gt;% group_by(diabetes) %&gt;% filter(diabetes == 0) %&gt;% select(ejection_fraction) %&gt;% 
+    sample_n(20)</code></pre>
+<pre><code>## # A tibble: 20 x 2
+## # Groups:   diabetes [1]
+##    diabetes ejection_fraction
+##       &lt;dbl&gt;             &lt;dbl&gt;
+##  1        0                20
+##  2        0                25
+##  3        0                25
+##  4        0                60
+##  5        0                35
+##  6        0                40
+##  7        0                40
+##  8        0                45
+##  9        0                35
+## 10        0                30
+## 11        0                30
+## 12        0                45
+## 13        0                40
+## 14        0                45
+## 15        0                25
+## 16        0                20
+## 17        0                25
+## 18        0                35
+## 19        0                38
+## 20        0                25</code></pre>
+<pre class="r"><code>no_diab &lt;- c(38, 35, 20, 25, 14, 50, 35, 40, 30, 25, 50, 45, 
+    25, 40, 40, 35, 35, 25, 35, 45)
+
+heart %&gt;% group_by(diabetes) %&gt;% filter(diabetes == 1) %&gt;% select(ejection_fraction) %&gt;% 
+    sample_n(20)</code></pre>
+<pre><code>## # A tibble: 20 x 2
+## # Groups:   diabetes [1]
+##    diabetes ejection_fraction
+##       &lt;dbl&gt;             &lt;dbl&gt;
+##  1        1                50
+##  2        1                38
+##  3        1                25
+##  4        1                30
+##  5        1                40
+##  6        1                60
+##  7        1                20
+##  8        1                25
+##  9        1                35
+## 10        1                38
+## 11        1                20
+## 12        1                30
+## 13        1                50
+## 14        1                25
+## 15        1                60
+## 16        1                17
+## 17        1                20
+## 18        1                50
+## 19        1                60
+## 20        1                40</code></pre>
+<pre class="r"><code>yes_diab &lt;- c(38, 38, 35, 20, 40, 38, 40, 30, 38, 20, 38, 60, 
+    50, 25, 25, 35, 25, 60, 25, 40)
+
+mean_diff &lt;- mean(yes_diab) - mean(no_diab)
+
+frame &lt;- data.frame(condition = c(rep(&quot;no_diab&quot;, 20), rep(&quot;yes_diab&quot;, 
+    20)), time = c(no_diab, yes_diab))
+
+head(frame)</code></pre>
+<pre><code>##   condition time
+## 1   no_diab   38
+## 2   no_diab   35
+## 3   no_diab   20
+## 4   no_diab   25
+## 5   no_diab   14
+## 6   no_diab   50</code></pre>
+<pre class="r"><code>rand_dist &lt;- vector()
+for (i in 1:5000) {
+    new &lt;- data.frame(time = sample(frame$time), condition = frame$condition)
+    rand_dist[i] &lt;- mean(new[new$condition == &quot;yes_diab&quot;, ]$time) - 
+        mean(new[new$condition == &quot;no_diab&quot;, ]$time)
+}
+
+{
+    hist(rand_dist, main = &quot;Randomization Distribution&quot;, ylab = &quot;Samples&quot;)
+    abline(v = c(-5, 5), col = &quot;red&quot;)
+}</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-2-1.png" width="768" style="display: block; margin: auto;" />
+<strong>Significant differences in ejection fraction in diabetics and non-diabetics is explored above. Specifically, a randomization test was conducted to see whether there was a significant difference in mean ejection fraction between a sample diabetics (n = 20) and non-diabetics (n = 20) from the heart dataset, and the test statistic is the actual mean difference between groups (mean_diff). The null and alternative hypothesis are as follows: H0: mean ejection fraction is the same for diabetics vs. non-diabetics. HA: mean ejection fraction is different for diabetics vs. non-diabetics. The randomization distribution, with zero being the mean of the non-random distribution, demonstrates a fairly normal distribution, indicating there is a weak relationship between ejection fraction and diabetes status. The test statistic (1.8) falls within the majority of samples, or at the peak, of the randomization distribution.</strong></p>
+</div>
+<div id="question-3-linear-regression-model" class="section level2">
+<h2>Question 3: Linear Regression Model</h2>
+<pre class="r"><code>heart$age_c &lt;- heart$age - mean(heart$age)
+
+fit &lt;- lm(ejection_fraction ~ age_c * diabetes, data = heart)
+summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = ejection_fraction ~ age_c * diabetes, data = heart)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -23.658  -8.038  -0.812   6.469  42.342 
+## 
+## Coefficients:
+##                Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)    38.10355    0.90207  42.240   &lt;2e-16 ***
+## age_c           0.02816    0.07089   0.397    0.691    
+## diabetes        0.08884    1.39990   0.063    0.949    
+## age_c:diabetes  0.09648    0.12356   0.781    0.436    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 11.86 on 295 degrees of freedom
+## Multiple R-squared:  0.005668,   Adjusted R-squared:  -0.004443 
+## F-statistic: 0.5606 on 3 and 295 DF,  p-value: 0.6414</code></pre>
+<pre class="r"><code>heart %&gt;% ggplot(aes(age_c, ejection_fraction, color = diabetes)) + 
+    geom_point() + geom_smooth(method = &quot;lm&quot;) + geom_vline(xintercept = mean(heart$diabetes, 
+    na.rm = T), lty = 2)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-3-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>resids &lt;- fit$residuals
+fitvals &lt;- fit$fitted.values
+
+ggplot() + geom_point(aes(fitvals, resids)) + geom_hline(yintercept = 0, 
+    color = &quot;red&quot;)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-3-2.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot() + geom_histogram(aes(resids), bins = 20)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-3-3.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot() + geom_qq(aes(sample = resids)) + geom_qq_line(aes(sample = resids))</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-3-4.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>library(sandwich)
+library(lmtest)
+bptest(fit)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  fit
+## BP = 1.6613, df = 3, p-value = 0.6456</code></pre>
+<pre class="r"><code>shapiro.test(resids)</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  resids
+## W = 0.95585, p-value = 7.467e-08</code></pre>
+<pre class="r"><code>summary(fit)$coef[, 1:2]</code></pre>
+<pre><code>##                   Estimate Std. Error
+## (Intercept)    38.10355175 0.90207175
+## age_c           0.02816236 0.07088858
+## diabetes        0.08884397 1.39990445
+## age_c:diabetes  0.09647945 0.12355903</code></pre>
+<pre class="r"><code>coeftest(fit, vcov = vcovHC(fit))[, 1:2]</code></pre>
+<pre><code>##                   Estimate Std. Error
+## (Intercept)    38.10355175 0.94316271
+## age_c           0.02816236 0.06737188
+## diabetes        0.08884397 1.38706369
+## age_c:diabetes  0.09647945 0.11257602</code></pre>
+<p><strong>A linear regression was run to predict the effect of mean ejection fraction between diabetics and non-diabetics. The coefficient estimates predict that your ejection fraction is 38.10355 at the mean age and diabetes status. They also predict that for increasing by one unit of age your ejection fraction increases by 0.02816. They also predict that for being diabetic your ejection_fraction increases by 0.08884. The model explains a proportion of -0.004443 of the variance in my model. Assumptions of linearity, normality, and homoskedasticity were checked graphically and with hypothesis tests. Based on a scatterplot of the model, there seems to be strong linearity between the inputs and the outputs of the regression. Additionally, based on a residual plot of the model, the assumption of homoskedasticity is met, as the residuals collect in the center of the range of fitted values. This is supported by the Bresush-Pagan test, providing a p-value = 0.8661, serving to accept the null hypothesis of homoskedasticity. Lastly, based on the Q-Q plot of the model, the assumption of normality is not met, as more of the data points are collected within the middle range of fitted values. This is support bed the Shapiro-Wilk test, providing a p=value = 7.467e-08, serving to reject the null hypothesis of normality. The normal-theory SES are similar to the robust SES: SES for the normal-theory model = 0.90207175, 0.07088858, 1.39990445,0.12355903, in comparison for the robust model = 0.94316271, 0.06737188, 1.38706369, 0.11257602. The SES are not significantly different, and overall, we would not expect the p-values to change in significantly as a result.</strong></p>
+</div>
+<div id="question-4-bootstrapping" class="section level2">
+<h2>Question 4: Bootstrapping</h2>
+<pre class="r"><code>set.seed(348)
+fit &lt;- lm(ejection_fraction ~ age_c * diabetes, data = heart)
+resids &lt;- fit$residuals
+fitted &lt;- fit$fitted.values
+
+boot_dat &lt;- sample_frac(heart, replace = T)
+
+samp_distn &lt;- replicate(5000, {
+    boot_dat &lt;- sample_frac(heart, replace = T)  #take bootstrap sample of rows
+    fit &lt;- lm(ejection_fraction ~ age_c * diabetes, data = boot_dat)
+    coef(fit)  #save coefs
+})
+
+samp_distn %&gt;% t %&gt;% as.data.frame %&gt;% summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept)      age_c diabetes age_c:diabetes
+## 1   0.9418303 0.06668204 1.384165      0.1111305</code></pre>
+<pre class="r"><code>coeftest(fit)[, 1:2]</code></pre>
+<pre><code>##                   Estimate Std. Error
+## (Intercept)    38.10355175 0.90207175
+## age_c           0.02816236 0.07088858
+## diabetes        0.08884397 1.39990445
+## age_c:diabetes  0.09647945 0.12355903</code></pre>
+<pre class="r"><code>coeftest(fit, vcov = vcovHC(fit))[, 1:2]</code></pre>
+<pre><code>##                   Estimate Std. Error
+## (Intercept)    38.10355175 0.94316271
+## age_c           0.02816236 0.06737188
+## diabetes        0.08884397 1.38706369
+## age_c:diabetes  0.09647945 0.11257602</code></pre>
+<p><strong>The same regression model was reran but with bootstrapped standard errors, by resampling observations. The SES of the bootstrapped model is similar to the SES of the normal-theory model: SES for the bootstrapped model = 0.94316271, 0.06737188, 1.38706369, 0.11257602, in comparison for the normal-theory model = 0.90207175, 0.07088858, 1.39990445, 0.12355903. The largest difference is between SES of the intercepts of ~0.09. Overall, we would not expect the p-values to change in significantly as a result.</strong></p>
+</div>
+<div id="question-5-fit-a-logistic-regression-model" class="section level2">
+<h2>Question 5: Fit a logistic regression model</h2>
+<pre class="r"><code>fit2 &lt;- glm(diabetes ~ age + ejection_fraction, family = &quot;binomial&quot;, 
+    data = heart)
+coeftest(fit2)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                      Estimate  Std. Error z value Pr(&gt;|z|)  
+## (Intercept)        0.72521417  0.70946822  1.0222  0.30669  
+## age               -0.01754950  0.01010533 -1.7367  0.08245 .
+## ejection_fraction  0.00020591  0.00997589  0.0206  0.98353  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>exp(coef(fit2))</code></pre>
+<pre><code>##       (Intercept)               age ejection_fraction 
+##         2.0651733         0.9826036         1.0002059</code></pre>
+<pre class="r"><code>probs &lt;- predict(fit2, type = &quot;response&quot;)
+truth1 &lt;- heart$diabetes
+class_diag(probs, truth1)</code></pre>
+<pre><code>##         acc  sens      spec       ppv       auc
+## 1 0.5652174 0.016 0.9597701 0.2222222 0.5533793</code></pre>
+<pre class="r"><code>table(predict = as.numeric(probs &gt; 0.5), truth = heart$diabetes) %&gt;% 
+    addmargins</code></pre>
+<pre><code>##        truth
+## predict   0   1 Sum
+##     0   167 123 290
+##     1     7   2   9
+##     Sum 174 125 299</code></pre>
+<pre class="r"><code>(2 + 167)/299  # Accuracy</code></pre>
+<pre><code>## [1] 0.5652174</code></pre>
+<pre class="r"><code>## [1] 0.5652174
+(2/9)  # Sensitivity/TPR</code></pre>
+<pre><code>## [1] 0.2222222</code></pre>
+<pre class="r"><code>## [1] 0.2222222
+(167/290)  # Specificity/TNR</code></pre>
+<pre><code>## [1] 0.5758621</code></pre>
+<pre class="r"><code>## [1] 0.5758621
+(7/9)  # Precision/PPV</code></pre>
+<pre><code>## [1] 0.7777778</code></pre>
+<pre class="r"><code>## [1] 0.7777778
+
+heart$logit &lt;- predict(fit2, type = &quot;link&quot;)
+heart %&gt;% mutate(y = as.factor(diabetes)) %&gt;% ggplot() + geom_density(aes(logit, 
+    fill = y)) + geom_vline(xintercept = 0) + xlab(&quot;predictor (logit)&quot;)</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-5-1.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>library(plotROC)
+ROCplot &lt;- ggplot(heart) + geom_roc(aes(d = diabetes, m = probs), 
+    n.cuts = 0)
+ROCplot</code></pre>
+<p><img src="../../project/project2_files/figure-html/unnamed-chunk-5-2.png" width="768" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>calc_auc(ROCplot)</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.5533793</code></pre>
+<p><strong>A logistic regression was performed to predict the odds of being diabetic based on the effects of age and ejection fraction. In context, the coefficient estimates predict that the log odds of being diabetic when age and ejection_fraction is zero is 2.0651733. They also predict that the log odds for getting diabetes by increasing one unit of age is 0.9826036 (p-value = 0.08245), and the log odds for getting diabetes by increasing one unit of ejection_fraction is 1.0002059 (p-value = 0.98353). Both p-values for age and ejection_fraction are p-value &gt; 0.05, indicating that they are not statistically significant predictors for diabetes status. The proportion of correctly classified cases is an Accuracy = 0.5652174. The proportion of diabetics correctly classified is a Sensitivity (TPR) = 0.2222222. The proportion of non-diabetics status correctly is a Specificity (TNR) = 0.5758621. The proportion of classified diabetics who actually are diabetic is a Precision (PPV) = 0.7777778. Generation of an ROC cuve and calculation of AUC suggest that this model is poor at predicting new data. AUC = 0.5533793, which is a bad numeric, and indicates low separability for this model.</strong></p>
+</div>
+<div id="question-6-fit-a-logistic-regression-model-for-all-variables" class="section level2">
+<h2>Question 6: Fit a logistic regression model for ALL variables</h2>
+<pre class="r"><code>library(tidyverse)
+
+fit3 &lt;- glm(diabetes ~ (.), data = heart, family = &quot;binomial&quot;)
+coeftest(fit3)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                             Estimate  Std. Error z value Pr(&gt;|z|)  
+## (Intercept)               7.7095e+00  4.0733e+00  1.8927  0.05840 .
+## age                      -1.5407e-02  1.0884e-02 -1.4156  0.15690  
+## anaemia                  -6.5027e-02  2.5455e-01 -0.2555  0.79837  
+## creatinine_phosphokinase -2.5056e-05  1.3033e-04 -0.1922  0.84755  
+## ejection_fraction        -1.7295e-04  1.1136e-02 -0.0155  0.98761  
+## high_blood_pressure      -9.3625e-02  2.6296e-01 -0.3560  0.72181  
+## platelets                 1.8851e-06  1.2777e-06  1.4753  0.14013  
+## serum_creatinine         -1.2778e-01  1.3544e-01 -0.9435  0.34544  
+## serum_sodium             -5.1613e-02  2.9330e-02 -1.7597  0.07845 .
+## sex                      -4.2342e-01  2.8673e-01 -1.4767  0.13975  
+## smoking                  -5.0616e-01  2.9784e-01 -1.6994  0.08924 .
+## time                      6.0402e-04  1.9062e-03  0.3169  0.75134  
+## DEATH_EVENT               1.5599e-01  3.3864e-01  0.4606  0.64506  
+## age_c                             NA          NA      NA       NA  
+## logit                             NA          NA      NA       NA  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>exp(coef(fit3))</code></pre>
+<pre><code>##              (Intercept)                      age                  anaemia 
+##             2229.4196936                0.9847108                0.9370424 
+## creatinine_phosphokinase        ejection_fraction      high_blood_pressure 
+##                0.9999749                0.9998271                0.9106242 
+##                platelets         serum_creatinine             serum_sodium 
+##                1.0000019                0.8800472                0.9496967 
+##                      sex                  smoking                     time 
+##                0.6548040                0.6028062                1.0006042 
+##              DEATH_EVENT                    age_c                    logit 
+##                1.1688140                       NA                       NA</code></pre>
+<pre class="r"><code>probs1 &lt;- predict(fit3, type = &quot;response&quot;)
+truth1 &lt;- heart$diabetes
+class_diag(probs1, truth1)</code></pre>
+<pre><code>##         acc  sens      spec       ppv       auc
+## 1 0.6421405 0.384 0.8275862 0.6153846 0.6388046</code></pre>
+<pre class="r"><code>table(predict = as.numeric(probs1 &gt; 0.5), truth = heart$diabetes) %&gt;% 
+    addmargins</code></pre>
+<pre><code>##        truth
+## predict   0   1 Sum
+##     0   144  77 221
+##     1    30  48  78
+##     Sum 174 125 299</code></pre>
+<pre class="r"><code>set.seed(348)
+k = 10
+data &lt;- heart %&gt;% sample_frac  #put rows of dataset in random order
+folds &lt;- ntile(1:nrow(heart), n = 10)  #create fold labels
+diags &lt;- NULL
+for (i in 1:k) {
+    train &lt;- heart[folds != i, ]  #create training set (all but fold i)
+    test &lt;- heart[folds == i, ]  #create test set (just fold i)
+    truth &lt;- test$diabetes  #save truth labels from fold i
+    fit &lt;- glm(diabetes ~ (.)^2, data = train, family = &quot;binomial&quot;)
+    probs &lt;- predict(fit, newdata = test, type = &quot;response&quot;)
+    diags &lt;- rbind(diags, class_diag(probs, truth))
+}
+
+summarize_all(diags, mean)</code></pre>
+<pre><code>##         acc      sens      spec       ppv       auc
+## 1 0.5417241 0.4768367 0.6064342 0.4411905 0.5427132</code></pre>
+<pre class="r"><code>library(glmnet)
+set.seed(1234)
+
+y &lt;- as.matrix(heart$diabetes)
+x &lt;- model.matrix(diabetes ~ ., data = heart)[, -1]
+head(x)</code></pre>
+<pre><code>##   age anaemia creatinine_phosphokinase ejection_fraction high_blood_pressure
+## 1  75       0                      582                20                   1
+## 2  55       0                     7861                38                   0
+## 3  65       0                      146                20                   0
+## 4  50       1                      111                20                   0
+## 5  65       1                      160                20                   0
+## 6  90       1                       47                40                   1
+##   platelets serum_creatinine serum_sodium sex smoking time DEATH_EVENT
+## 1    265000              1.9          130   1       0    4           1
+## 2    263358              1.1          136   1       0    6           1
+## 3    162000              1.3          129   1       1    7           1
+## 4    210000              1.9          137   1       0    7           1
+## 5    327000              2.7          116   0       0    8           1
+## 6    204000              2.1          132   1       1    8           1
+##        age_c      logit
+## 1  14.166107 -0.5868801
+## 2  -5.833893 -0.2321838
+## 3   4.166107 -0.4113851
+## 4 -10.833893 -0.1481426
+## 5   4.166107 -0.4113851
+## 6  29.166107 -0.8460044</code></pre>
+<pre class="r"><code>cv &lt;- cv.glmnet(x, y, family = &quot;binomial&quot;)
+lasso &lt;- glmnet(x, y, family = &quot;binomial&quot;, lambda = cv$lambda.1se)
+coef(lasso)</code></pre>
+<pre><code>## 15 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                                   s0
+## (Intercept)              -0.22336220
+## age                       .         
+## anaemia                   .         
+## creatinine_phosphokinase  .         
+## ejection_fraction         .         
+## high_blood_pressure       .         
+## platelets                 .         
+## serum_creatinine          .         
+## serum_sodium              .         
+## sex                      -0.13733231
+## smoking                  -0.05856205
+## time                      .         
+## DEATH_EVENT               .         
+## age_c                     .         
+## logit                     .</code></pre>
+<pre class="r"><code>set.seed(348)
+k = 10
+data &lt;- heart %&gt;% sample_frac  #put rows of dataset in random order
+folds &lt;- ntile(1:nrow(heart), n = 10)  #create fold labels
+diags &lt;- NULL
+for (i in 1:k) {
+    train &lt;- heart[folds != i, ]  #create training set (all but fold i)
+    test &lt;- heart[folds == i, ]  #create test set (just fold i)
+    truth &lt;- test$diabetes  #save truth labels from fold i
+    fit &lt;- glm(diabetes ~ sex + smoking, data = train, family = &quot;binomial&quot;)
+    probs &lt;- predict(fit, newdata = test, type = &quot;response&quot;)
+    diags &lt;- rbind(diags, class_diag(probs, truth))
+}
+
+summarize_all(diags, mean)</code></pre>
+<pre><code>##         acc      sens      spec ppv     auc
+## 1 0.5818391 0.4034939 0.7391214 NaN 0.59957</code></pre>
+<p><strong>A logistic regression was performed to predict the odds of being diabetic based on the effects of all dataset variables. In-sample classification diagnostics were collected as follows: the proportion of correctly classified cases is an Accuracy = 0.6421405. The proportion of diabetics correctly classified is a Sensitivity (TPR) = 0.384. The proportion of non-diabetics status correctly is a Specificity (TNR) = 0.8275862. The proportion of classified diabetics who actually are diabetic is a Precision (PPV) = 0.6153846, indicating this there is no predictive value to the dataset variables for being diabetic. AUC = 0.6388046, which is a bad numeric, and indicates low separability for this model. A 10-fold CV with the same model was also performed, and in-sample classification diagnostics were collected as follows: the proportion of correctly classified cases is an Accuracy = 0.5250575. The proportion of diabetics correctly classified is a Sensitivity (TPR) = 0.4618998. The proportion of non-diabetics status correctly is a Specificity (TNR) = 0.5943551. The proportion of classified diabetics who actually are diabetic is a Precision (PPV) = 0.4319974. AUC = 0.5506988. A LASSO was also performed, and the variables that are retained and are significant are sex and smoking. Following, a 10-fold CV was performed only using variables sex and smoking, and the out-of-sample AUC = 0.59957. This AUC is lower than the fit model and higher than the 10-fold model, indicating that the fit model has higher accuracy and sensitivity, despite no correction for overfitting.</strong></p>
+<p>Note that the <code>echo = FALSE</code> parameter was added to the code chunk to prevent printing of the R code that generated the plot.</p>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

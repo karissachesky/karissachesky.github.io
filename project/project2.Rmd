@@ -1,0 +1,270 @@
+---
+title: "Project 2"
+author: "Karissa Chesky - kac5389"
+date: "5/7/2021"
+output: html_document
+---
+##Logistics
+```{r setup, include=FALSE}
+library(knitr)
+opts_chunk$set(fig.align="center", fig.height=5, message=FALSE, warning=FALSE, fig.width=8, tidy.opts=list(width.cutoff=60),tidy=TRUE)
+
+class_diag<-function(probs,truth){
+  
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  #CALCULATE EXACT AUC
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+```
+
+## Introduction
+
+**I have chosen the dataset “heart” for Project 2. This dataset was acquired from the public learning community Kaggle. I was inspired to study heart health data, and their modern trends, as they continue to greatly impact our modern world and my interests in medicine. “Heart” is a dataset containing variables that effect heart health and can ultimately lead to death. For example, such variables include “age”, “anemia”, “creatinine_phosphokinase”, “diabetes”, etc. These variables are measuring how much of a certain molecule is present or the diagnosis of a health state. There are 299 observations.**
+
+```{R}
+library(tidyverse)
+library(dplyr)
+
+setwd('/home/kac5389/website/content/project')
+
+heart <- read_csv("heart_failure_clinical_records_dataset.csv")
+
+head(heart)
+```
+
+## Question 1: Manova Testing
+```{r pressure, echo=FALSE}
+
+man1 <- manova(cbind(age, ejection_fraction)~diabetes, data=heart)
+
+summary(man1)
+
+summary.aov(man1)
+
+pairwise.t.test(heart$age, heart$diabetes, p.adj = "none")
+pairwise.t.test(heart$ejection_fraction, heart$diabetes, p.adj = "none")
+
+1-(0.95)^3 ##Type 1 error rate
+
+0.05/3 ## Bonferroni
+
+```
+**A one-way MANOVA was performed to determine the effect of the diabetes status on two dependent variables (age and ejection fraction). Significant differences were not found among the two diabetes statuses for at least one of the dependent variables, Pillai trace = 0.010205, pseudo F(2, 297) = 11.5259, p = 0.2191. For demonstration (although no significant mean difference was present), univariate ANOVAs for each dependent variable were conducted as follow-up tests to the MANOVA, using the Bonferroni method for controlling Type 1 error rates for multiple comparisons. Three total tests were performed (1 MANOVA, 2 ANOVA), and the probability of at least one type 1 error is 0.142625. To keep familywise Type 1 error rate at 0.05, a Bonferroni correction were performed, α = 0.05/3 = 0.142625. The univariate ANOVAs for Tested and Infected were not significant, F(1, 297) = 3.0617, p = 0.08119, and F(1, 49) = 0.007, p = 0.9334. Also for demonstration, post hoc analysis was performed conducting pairwise comparisions to determine which diabetes status differed in number of tested and infected individuals. Both statuses still not found to differ significantly from each other in terms of age and ejection fraction after adjusting for multiple comparisons (boneferroni α = 0.05/3 = 0.0167).**
+
+
+## Question 2: Randomization
+```{R}
+heart %>% group_by(diabetes) %>% filter(diabetes == 0) %>% select(ejection_fraction) %>% 
+    sample_n(20)
+
+no_diab <- c(38, 35, 20, 25, 14, 50, 35, 40, 30, 25, 50, 45, 
+    25, 40, 40, 35, 35, 25, 35, 45)
+
+heart %>% group_by(diabetes) %>% filter(diabetes == 1) %>% select(ejection_fraction) %>% 
+    sample_n(20)
+
+yes_diab <- c(38, 38, 35, 20, 40, 38, 40, 30, 38, 20, 38, 60, 
+    50, 25, 25, 35, 25, 60, 25, 40)
+
+mean_diff <- mean(yes_diab) - mean(no_diab)
+
+frame <- data.frame(condition = c(rep("no_diab", 20), rep("yes_diab", 
+    20)), time = c(no_diab, yes_diab))
+
+head(frame)
+
+rand_dist <- vector()
+for (i in 1:5000) {
+    new <- data.frame(time = sample(frame$time), condition = frame$condition)
+    rand_dist[i] <- mean(new[new$condition == "yes_diab", ]$time) - 
+        mean(new[new$condition == "no_diab", ]$time)
+}
+
+{
+    hist(rand_dist, main = "Randomization Distribution", ylab = "Samples")
+    abline(v = c(-5, 5), col = "red")
+}
+
+```
+**Significant differences in ejection fraction in diabetics and non-diabetics is explored above. Specifically, a randomization test was conducted to see whether there was a significant difference in mean ejection fraction between a sample diabetics (n = 20) and non-diabetics (n = 20) from the heart dataset, and the test statistic is the actual mean difference between groups (mean_diff). The null and alternative hypothesis are as follows: H0: mean ejection fraction is the same for diabetics vs. non-diabetics. HA: mean ejection fraction is different for diabetics vs. non-diabetics. The randomization distribution, with zero being the mean of the non-random distribution, demonstrates a fairly normal distribution, indicating there is a weak relationship between ejection fraction and diabetes status. The test statistic (1.8) falls within the majority of samples, or at the peak, of the randomization distribution.**
+
+
+## Question 3: Linear Regression Model
+```{R}
+
+heart$age_c <- heart$age - mean(heart$age)
+
+fit <- lm(ejection_fraction ~ age_c * diabetes, data = heart)
+summary(fit)
+
+heart %>% ggplot(aes(age_c, ejection_fraction, color = diabetes)) + 
+    geom_point() + geom_smooth(method = "lm") + geom_vline(xintercept = mean(heart$diabetes, 
+    na.rm = T), lty = 2)
+
+resids <- fit$residuals
+fitvals <- fit$fitted.values
+
+ggplot() + geom_point(aes(fitvals, resids)) + geom_hline(yintercept = 0, 
+    color = "red")
+ggplot() + geom_histogram(aes(resids), bins = 20)
+ggplot() + geom_qq(aes(sample = resids)) + geom_qq_line(aes(sample = resids))
+
+library(sandwich)
+library(lmtest)
+bptest(fit)
+
+shapiro.test(resids)
+
+summary(fit)$coef[, 1:2]
+
+coeftest(fit, vcov = vcovHC(fit))[, 1:2]
+
+```
+**A linear regression was run to predict the effect of mean ejection fraction between diabetics and non-diabetics. The coefficient estimates predict that your ejection fraction is 38.10355 at the mean age and diabetes status. They also predict that for increasing by one unit of age your ejection fraction increases by 0.02816. They also predict that for being diabetic your ejection_fraction increases by 0.08884. The model explains a proportion of -0.004443 of the variance in my model. Assumptions of linearity, normality, and homoskedasticity were checked graphically and with hypothesis tests. Based on a scatterplot of the model, there seems to be strong linearity between the inputs and the outputs of the regression. Additionally, based on a residual plot of the model, the assumption of homoskedasticity is met, as the residuals collect in the center of the range of fitted values. This is supported by the Bresush-Pagan test, providing a p-value = 0.8661, serving to accept the null hypothesis of homoskedasticity. Lastly, based on the Q-Q plot of the model, the assumption of normality is not met, as more of the data points are collected within the middle range of fitted values. This is support bed the Shapiro-Wilk test, providing a p=value = 7.467e-08, serving to reject the null hypothesis of normality. The normal-theory SES are similar to the robust SES: SES for the normal-theory model = 0.90207175, 0.07088858, 1.39990445,0.12355903, in comparison for the robust model = 0.94316271, 0.06737188, 1.38706369, 0.11257602. The SES are not significantly different, and overall, we would not expect the p-values to change in significantly as a result.**
+
+
+## Question 4: Bootstrapping
+```{R}
+set.seed(348)
+fit <- lm(ejection_fraction ~ age_c * diabetes, data = heart)
+resids <- fit$residuals
+fitted <- fit$fitted.values
+
+boot_dat <- sample_frac(heart, replace = T)
+
+samp_distn <- replicate(5000, {
+    boot_dat <- sample_frac(heart, replace = T)  #take bootstrap sample of rows
+    fit <- lm(ejection_fraction ~ age_c * diabetes, data = boot_dat)
+    coef(fit)  #save coefs
+})
+
+samp_distn %>% t %>% as.data.frame %>% summarize_all(sd)
+
+coeftest(fit)[, 1:2]
+
+coeftest(fit, vcov = vcovHC(fit))[, 1:2]
+
+```
+**The same regression model was reran but with bootstrapped standard errors, by resampling observations. The SES of the bootstrapped model is similar to the SES of the normal-theory model: SES for the bootstrapped model = 0.94316271, 0.06737188, 1.38706369, 0.11257602, in comparison for the normal-theory model = 0.90207175, 0.07088858, 1.39990445, 0.12355903. The largest difference is between SES of the intercepts of ~0.09. Overall, we would not expect the p-values to change in significantly as a result.**
+
+## Question 5: Fit a logistic regression model
+```{R}
+fit2 <- glm(diabetes ~ age + ejection_fraction, family = "binomial", 
+    data = heart)
+coeftest(fit2)
+
+exp(coef(fit2))
+
+probs <- predict(fit2, type = "response")
+truth1 <- heart$diabetes
+class_diag(probs, truth1)
+
+table(predict = as.numeric(probs > 0.5), truth = heart$diabetes) %>% 
+    addmargins
+
+(2 + 167)/299  # Accuracy
+## [1] 0.5652174
+(2/9)  # Sensitivity/TPR
+## [1] 0.2222222
+(167/290)  # Specificity/TNR
+## [1] 0.5758621
+(7/9)  # Precision/PPV
+## [1] 0.7777778
+
+heart$logit <- predict(fit2, type = "link")
+heart %>% mutate(y = as.factor(diabetes)) %>% ggplot() + geom_density(aes(logit,fill = y)) + geom_vline(xintercept = 0) + xlab("predictor (logit)")
+
+library(plotROC)
+ROCplot <- ggplot(heart) + geom_roc(aes(d = diabetes, m = probs), 
+    n.cuts = 0)
+ROCplot
+
+calc_auc(ROCplot)
+
+```
+**A logistic regression was performed to predict the odds of being diabetic based on the effects of age and ejection fraction. In context, the coefficient estimates predict that the log odds of being diabetic when age and ejection_fraction is zero is 2.0651733. They also predict that the log odds for getting diabetes by increasing one unit of age is 0.9826036 (p-value = 0.08245), and the log odds for getting diabetes by increasing one unit of ejection_fraction is 1.0002059 (p-value = 0.98353). Both p-values for age and ejection_fraction are p-value > 0.05, indicating that they are not statistically significant predictors for diabetes status. The proportion of correctly classified cases is an Accuracy = 0.5652174. The proportion of diabetics correctly classified is a Sensitivity (TPR) = 0.2222222. The proportion of non-diabetics status correctly is a Specificity (TNR) = 0.5758621. The proportion of classified diabetics who actually are diabetic is a Precision (PPV) = 0.7777778. Generation of an ROC cuve and calculation of AUC suggest that this model is poor at predicting new data. AUC = 0.5533793, which is a bad numeric, and indicates low separability for this model.**
+
+
+## Question 6: Fit a logistic regression model for ALL variables
+```{R}
+library(tidyverse)
+
+fit3 <- glm(diabetes ~ (.), data = heart, family = "binomial")
+coeftest(fit3)
+
+exp(coef(fit3))
+
+probs1 <- predict(fit3, type = "response")
+truth1 <- heart$diabetes
+class_diag(probs1, truth1)
+
+table(predict = as.numeric(probs1 > 0.5), truth = heart$diabetes) %>% 
+    addmargins
+
+set.seed(348)
+k = 10
+data <- heart %>% sample_frac  #put rows of dataset in random order
+folds <- ntile(1:nrow(heart), n = 10)  #create fold labels
+diags <- NULL
+for (i in 1:k) {
+    train <- heart[folds != i, ]  #create training set (all but fold i)
+    test <- heart[folds == i, ]  #create test set (just fold i)
+    truth <- test$diabetes  #save truth labels from fold i
+    fit <- glm(diabetes ~ (.)^2, data = train, family = "binomial")
+    probs <- predict(fit, newdata = test, type = "response")
+    diags <- rbind(diags, class_diag(probs, truth))
+}
+
+summarize_all(diags, mean)
+
+library(glmnet)
+set.seed(1234)
+
+y <- as.matrix(heart$diabetes)
+x <- model.matrix(diabetes ~ ., data = heart)[, -1]
+head(x)
+
+cv <- cv.glmnet(x, y, family = "binomial")
+lasso <- glmnet(x, y, family = "binomial", lambda = cv$lambda.1se)
+coef(lasso)
+
+set.seed(348)
+k = 10
+data <- heart %>% sample_frac  #put rows of dataset in random order
+folds <- ntile(1:nrow(heart), n = 10)  #create fold labels
+diags <- NULL
+for (i in 1:k) {
+    train <- heart[folds != i, ]  #create training set (all but fold i)
+    test <- heart[folds == i, ]  #create test set (just fold i)
+    truth <- test$diabetes  #save truth labels from fold i
+    fit <- glm(diabetes ~ sex + smoking, data = train, family = "binomial")
+    probs <- predict(fit, newdata = test, type = "response")
+    diags <- rbind(diags, class_diag(probs, truth))
+}
+
+summarize_all(diags, mean)
+
+``` 
+**A logistic regression was performed to predict the odds of being diabetic based on the effects of all dataset variables. In-sample classification diagnostics were collected as follows: the proportion of correctly classified cases is an Accuracy = 0.6421405. The proportion of diabetics correctly classified is a Sensitivity (TPR) = 0.384. The proportion of non-diabetics status correctly is a Specificity (TNR) = 0.8275862. The proportion of classified diabetics who actually are diabetic is a Precision (PPV) = 0.6153846, indicating this there is no predictive value to the dataset variables for being diabetic. AUC = 0.6388046, which is a bad numeric, and indicates low separability for this model. A 10-fold CV with the same model was also performed, and in-sample classification diagnostics were collected as follows: the proportion of correctly classified cases is an Accuracy = 0.5250575. The proportion of diabetics correctly classified is a Sensitivity (TPR) = 0.4618998. The proportion of non-diabetics status correctly is a Specificity (TNR) = 0.5943551. The proportion of classified diabetics who actually are diabetic is a Precision (PPV) = 0.4319974. AUC = 0.5506988. A LASSO was also performed, and the variables that are retained and are significant are sex and smoking. Following, a 10-fold CV was performed only using variables sex and smoking, and the out-of-sample AUC = 0.59957. This AUC is lower than the fit model and higher than the 10-fold model, indicating that the fit model has higher accuracy and sensitivity, despite no correction for overfitting.**
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+

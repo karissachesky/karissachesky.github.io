@@ -1,0 +1,176 @@
+---
+title: "Project1-kac5389"
+author: "Karissa Chesky - kac5389"
+date: "2/25/2021"
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: no
+---
+
+```{r eval=F}
+## paste this chunk into the ```{r setup} chunk at the top of your project 1 .Rmd file
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+## Introduction
+
+**I have chosen the datasets "COVID19_state" and "states" for Project 1. They were acquired from the public learning community Kaggle. I was inspiried to study COVID-19 data and their realtionship healthcare trends as COVID-19 is a phenomenon that has greatly impacted our modern world and my interests in medicine. "COVID19_state" is a dataset containing variables that describe COVID-19 predictive numerics based on demographic and public health information. For example, such variables include "Tested", "Infected", "Deaths", etc. "States" is a dataset containing variables that describe healthcare rates before and after the Affordable Care Act was passed. For example, such variables include "Marketplace Health Insurance Coverage (2016)", "Marketplace Tax Credits (2016)", "Medicaid Enrollment (2016)", etc. Both datasets share the variable "states" (the 50 United States). Potential associations that I predict from these datasets include that states that either did not participate in the 2016 state medicaid expansion, have lower rates of individuals enrolled in either medicaid or medicare, have lower numbers of healthcare workers, facilities, and health spending, will have higher COVID-19 rates of infection and deaths.**
+
+## Question 2: Joining/Merging
+
+```{R}
+
+library(tidyverse)
+
+covid <- read_csv("~/COVID19_state.csv")
+
+healthcare <- read_csv("~/states.csv")
+
+covid1 <- covid %>% select(-"Pollution", -"Gini", -"Med-Large Airports", -"Temperature", -"School Closure Date")
+
+healthcare1 <- healthcare %>% select(State, contains("2016"))
+
+```
+
+**From the "COVID19_state" dataset, variables "Pollution", "Gini", "Med-Large Airports", "Temperature" and "School Closure Date" were dropped, and from the "states" dataset, variables that did not contain "2016" were dropped. These variables were dropped because I felt that they would not be significantly useful and/or relevant (e.g data older than 2016) in my data analysis, and particularly, the potential associations I would be studying.**
+
+```{r 2}
+
+join1 <- covid1 %>% left_join(healthcare1, by="State")
+
+```
+
+**I conducted a left join to join the "COVID19_state" and "states". I chose to do this particular join because I felt that it was the simplest way to combine my two datasets by the common ID variable "State". Additionally, the "healthcare1" dataset had an extra row of data that I was not interested in. Specifically, in "healthcare1", there was an additional row in the "State" column containing data on the overall United States. Because the focus of my project is on individual states, I decided to omit this data. No observations in "covid1" were dropped, and one observation in "healthcare1" was dropped.**
+
+## Question 1 and 3: Tidying: Rearranging Wide/Long and Wrangling
+
+```{r 1 and 3}
+
+library(dplyr)
+
+mean(join1$Infected)
+
+join1 %>% mutate(US.Infected.Average = case_when(Infected>179627 ~ "Above Average", Infected<179627 ~ "Below Average")) %>% rename("SME"= `State Medicaid Expansion (2016)`) %>% select("State", "Infected", everything()) %>% group_by(US.Infected.Average) %>% filter(str_detect(State, "A")) %>% arrange(desc(State)) %>% summarize_if(is.numeric, mean, na.rm=T) 
+
+join1 <- join1 %>% mutate(US.Infected.Average = case_when(Infected>179627 ~ "Above Average", Infected<179627 ~ "Below Average")) %>% rename("SME"= `State Medicaid Expansion (2016)`) 
+
+sum_join1 <- join1 %>% select_if(is.numeric) %>% summarize_all(funs(mean, sd, var, min, max)) %>% pivot_longer(contains("_")) %>% separate(name, into = c("Variable", "Stat"), sep = "_") %>% pivot_wider(names_from = "Variable",values_from="value")
+
+group_join1 <- join1 %>% group_by(US.Infected.Average, SME) %>% select_if(is.numeric) %>% summarize_all(funs(min, max)) %>% pivot_longer(contains("_")) %>% separate(name, into = c("Variable", "Stat"), sep = "_") %>% pivot_wider(names_from = "Variable", values_from = "value")
+
+head(sum_join1)
+head(group_join1)
+
+```
+
+
+**The wrangling of the data proceeded by the following steps: first, I demonstrated the use of the six core 'dpylr' functions. I created an additional categorical variable, "US.Infected.Average", as a function of the variable "Infected", by dichotomizing the numeric variable "Infected" into values that were "Above Average" or "Below Average" of the total average number of individuals infected by COVID-19 in the US (17,9627). Next, I selected for variables "State" and "Infected", grouped by "US.Infected.Average", filtered by the variable "State" with values that started with the letter "A", arranged the values in a descending order by "State", and calculated the mean of numeric variables by the summarize_if function. The final output resulted in the means of all numeric variables for either "Above Average" or "Below Average" filtered states. All direct, average COVID-19 values, including number of infected, tested, and dead  individuals, were significantly higher for the "Above Average" states in comparision to the "Below Average". Specifically, the "Above Average" states averages of 221515.5 infected, 1574511.0	tested, and 4477.5	dead individuals, verses the "Below Average" states averages of 65349.0	infected, 991799.5 tested, and	1034.5 death individuals. Furthermore, in the "Above Average" states, the average values for population and population density were significantly higher (almost three to four-fold). This is could be due to the fact the simply having more individuals condensed in these areas encouraged the spread of COVID-19 and made correct practicing of social distancing strategies harder. However, in the "Above Average" states, the average values for health care accessibility, including ICU beds, physicians, hospitals, Marketplace Health Insurance Coverage (2016), Medicaid Enrollment (2016), and Medicare Enrollment (2016), were also significantly higher. Higher access to health care may lead to easier administration and accessibility to COVID-19 testing.**
+
+**Following the use of the six core 'dpylr' funcions, summary statistics were calculated for all numeric variables. For all numeric variables in the dataset, summary functions mean, sd, var, min, max were used, and the resulting data was reshaped using pivot_longer and pivot_wider for easier analysis by creating new columns describing the variable of interest and the summary statistic that was calculated. Following this, summary functions min and max were used for all numeric variables in the dataset after grouping by the categorical variables "US.Infected.Average" and "SME, and the resulting data was also reshaped using pivot_longer and pivot_wider for easier analysis by creating new columns describing the variable of interest and the summary statistic that was calculated. Tables of both summary function data were created using kable. All numeric variables showed high variance (var), suggesting that there is are wide differences in COVID-19 presence and its health and social implications, likely due to the high variance in health care accessibility (enrollment in Medicaid/Medicare, number of hospitals, number of physicians, etc.) across the states.** 
+
+## Question 4: Visualizing
+
+```{r 4a}
+
+join1 <- covid1 %>% left_join(healthcare1, by="State")
+
+library(dplyr)
+library(ggplot2)
+
+join1 <- join1 %>% mutate(US.Infected.Average = case_when(Infected>179627 ~ "Above Average", Infected<179627 ~ "Below Average")) %>% rename("SME"= `State Medicaid Expansion (2016)`) %>% mutate(Smoking_Rate_Average = case_when(`Smoking Rate`>17 ~ "Above Average", `Smoking Rate`<17 ~ "Below Average"))
+
+joincor <- join1 %>% select_if(is.numeric) %>% cor(use="pair")
+
+tidyjoincor <- joincor %>% as.data.frame %>% rownames_to_column("var1") %>% pivot_longer(-1, names_to = "var2", values_to = "correlation")
+
+tidyjoincor %>% ggplot (aes(var1, var2, fill = correlation)) + geom_tile() + scale_fill_gradient2(low = "red", mid = "yellow", high = "blue") + geom_text(aes(label=round(correlation, 2)), color = "black", size = 0.8) + theme(plot.title = element_text(size = 6.5, face = "bold"), axis.text.x = element_text(angle = 90, hjust = 1, size = 5.5), axis.text.y = element_text(angle = 0, hjust = 1, size = 5.5)) + coord_fixed() + ggtitle("Correlation between Dataset Numeric Variables")
+
+```
+
+**The correlation heatmap demonstrates several notable variable relationships. There are strong, positively correlated relationships (correlation coefficients ranging from 0.5 - 1) between all health insurance variables. Specifically, Medicare Enrollment, Medicaid Enrollment Change (2013-2016), Medicaid Enrollment (2016), and Marketplace Health Insurance Coverage (2016) are all strongly, positively correlated with each other. For example, this suggests that states with higher levels of marketplace health insurance coverage also have higher rates of Medicare and Medicaid Enrollment, and that there is generally a stronger emphasis on access to health insurance. These health insurance variables also have strong, positively correlated relationships with the number of individuals who tested or died from COVID-19. Additionally, other variables relating to age and other diseases have weak, positively correlated relationships with all dataset variables.**
+
+```{r 4b}
+
+ggplot(join1, aes(x = US.Infected.Average, y = Infected, fill=SME)) + geom_bar(stat = "summary", fun=mean) + ggtitle("Average COVID-19 Infections at State and National Levels in the United States (Current)") + xlab("Average States Comparision to US Infected Average") + ylab("Individuals Infected by COVID-19") + theme(plot.title = element_text(size = 7.5, face = "bold")) + labs(fill = "State Medicaid Expansion (2016)")
+
+```
+
+**The stacked barplot demonstrates several notable relationships. There are significantly less mean individuals infected by COVID-19 in each state that are below the national state average than mean individuals infected in each state that are above the national state average. Additionally, there is no significant difference in the amount of states that did participate in the 2016 State Medicaid Expansion (SME), suggesting that there is no strong relationship between infected individuals and state participation in SME.**
+
+```{r 4c}
+
+join1 %>% select(Hospitals, Tested, Infected, Deaths) %>% pivot_longer(cols = c(Tested, Infected, Deaths), names_to = "temp") %>% ggplot() + geom_point(aes(x=Hospitals, y= value, color = temp)) + geom_smooth(aes(x=Hospitals, y= value, color = temp)) + scale_x_continuous(breaks = seq(0, 600, 50)) + scale_y_continuous(breaks = seq(0, 200000000, 2500000)) + ggtitle("COVID-19 Statistics vs Population in the United States (Current)") + theme(plot.title = element_text(size = 15, face = "bold")) + ylab("Number of Individuals") + labs(fill = "COVID-19 Stats")
+
+```
+
+**The scatterplot demonstrates several notable relationships. There is a strong, linear relationship between the number of hospitals and the number of individuals who tested for COVID-19 per state. This relationship continues until it approaches a suggested, optimal number of hospitals (~400), in which the relationship between the number of hospitals and the number of individuals who tested for COVID-19 per state becomes inversly related. This suggests that as the number of hospitals, and therefore COVID-19 tests and general healthcare accessibility increases, the number of individuals tested also increases. However, when the suggested, optimal number of hospitals is reached, as the number of hospitals increase, COVID-19 tests and general health care accessibility becomes so normalized and/or accessible, that individuals perceive these resources as an expectation, and do not use them to their full potential. Additionally, there is a weak, linear relationship between the number of hospitals and the number of individuals who were infected or tested for COVID-19 per state. This suggests that the number of hospitals are not strong indicators of the number of individuals who were infected or tested for COVID-19, and/or that the tested to infected/death rate is relatively small.** 
+
+## Question 5: Dimensionality Reduction 
+
+```{r 5}
+
+join1 <- covid1 %>% left_join(healthcare1, by="State")
+
+join1 <- join1 %>% select(-`State Medicaid Expansion (2016)`) %>% na.omit()
+join1_nums <- join1 %>% select_if(is.numeric) %>% scale
+rownames(join1_nums) <- join1$State
+join1_pca <- princomp(join1_nums)
+names(join1_pca)
+
+eigval <- join1_pca$sdev^2
+varprop = round(eigval/sum(eigval), 2)
+
+ggplot() + geom_bar(aes(y=varprop, x=1:25), stat="identity") + xlab("x") + geom_path(aes(y = varprop, x = 1:25)) + geom_text(aes(x = 1:25, y = varprop, label = round(varprop, 2)), vjust=1, col="white", size=2) + scale_y_continuous(breaks = seq(0, .6, .1), labels = scales::percent) + scale_x_continuous(breaks=1:50)
+
+round(cumsum(eigval)/sum(eigval), 2)
+
+eigval
+
+summary(join1_pca, loadings=T)
+
+join1df <- data.frame(State = join1$State, PC1 = join1_pca$scores[, 1], PC2 = join1_pca$scores[, 2], PC3 = join1_pca$scores[, 3], PC4 = join1_pca$scores[, 4])
+
+join1_pca$scores[,1:4] %>% as.data.frame %>% top_n(3, Comp.1)
+join1_pca$scores[,1:4] %>% as.data.frame %>% top_n(-3, Comp.1)
+join1 %>% filter(State%in%c("California", "Florida", "Texas"))
+join1 %>% filter(State%in%c("Vermont", "West Virginia", "Wyoming"))
+
+join1_pca$scores[,1:4] %>% as.data.frame %>% top_n(3, wt=Comp.2)
+join1_pca$scores[,1:4] %>% as.data.frame %>% top_n(3, wt=desc(Comp.2))
+join1 %>% filter(State%in%c("Alabama", "Mississippi", "West Virginia"))
+join1 %>% filter(State%in%c("District of Columbia", "Massachusetts", "New Jersey"))
+
+join1_pca$scores[,1:4] %>% as.data.frame %>% top_n(3, wt=Comp.3)
+join1_pca$scores[,1:4] %>% as.data.frame %>% top_n(3, wt=desc(Comp.3))
+join1 %>% filter(State%in%c("Colorado", "Idaho", "Utah"))
+join1 %>% filter(State%in%c("District of Columbia", "Mississippi", "West Virginia"))
+
+join1_pca$scores[,1:4] %>% as.data.frame %>% top_n(3, wt=Comp.4)
+join1_pca$scores[,1:4] %>% as.data.frame %>% top_n(3, wt=desc(Comp.4))
+join1 %>% filter(State%in%c("New Hampshire", "Vermont", "West Virginia"))
+join1 %>% filter(State%in%c("Idaho", "Texas", "Utah"))
+
+ggplot(join1df, aes(PC1, PC2)) + geom_point()
+ggplot(join1df, aes(PC3, PC4)) + geom_point()
+
+
+join1_pca$loadings[1:25, 1:2] %>% as.data.frame %>% rownames_to_column %>% ggplot() + geom_hline(aes(yintercept=0), lty=2) + geom_vline(aes(xintercept=0), lty=2) + ylab("PC2") + xlab("PC1") + geom_segment(aes(x=0, y=0, xend=Comp.1, yend=Comp.2), arrow=arrow(), col="red") + geom_label(aes(x=Comp.1*1.1, y=Comp.2*1.1, label=rowname))
+
+join1_pca$loadings[1:25, 3:4] %>% as.data.frame %>% rownames_to_column %>% ggplot() + geom_hline(aes(yintercept=0), lty=2) + geom_vline(aes(xintercept=0), lty=2) + ylab("PC4") + xlab("PC3") + geom_segment(aes(x=0, y=0, xend=Comp.3, yend=Comp.4), arrow=arrow(), col="red") + geom_label(aes(x=Comp.3*1.1, y=Comp.4*1.1, label=rowname))
+
+```
+
+**A PCA was completed to capture the significant parts of the dataset. A Principal Component is a linear combination of the original variables. To determine how many PCs to keep for further analysis, the "rule of thumb", "Pick PCs until cummulative proportion of variance is > 80%" was used. Therefore, components 1 (0.43), 2 (0.61), 3 (0.70), and 4 (0.79) cummulative proportions of variance were < 80% and were used to determine that four PCs would be kept. PC1 is a general strength axis because the loadings/coefficients have mostly similar magnitude and sign: the higher scores a state's scores on PC1, the greater population, Medicare Enrollment, Infected, etc. of individuals overall. PC2 is a GDP vs. Respiratory Deaths axis: higher scores on PC2 mean more Respiratory Deaths but lower GDP, and lower scores on PC2 mean less Respiratory Deaths but higher GDP. PC3 is an Unemployment vs. Sex Ratio axis: higher scores on PC3 mean a higher Sex Ratio but lower Unemployment, and lower scores on PC3 mean a lower Sex Ratio but higher Unemployment. PC4 is a Age 0-25 vs. Age 55+ axis: higher scores on PC4 mean more individuals Age 55+ but less individuals Age 0-25, and lower scores on PC4 mean less individuals Age 55+ but more individuals Age 0-25. The scatterplots and arrow plots restate the numeric components and relationships, by visualizing the loading scores, from the dataframe.**
